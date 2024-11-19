@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yuvids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles.css">
+</head>
+<body>
+    <div class="copy-notification" id="copyNotification">
+        <span>Notification</span>
+    </div>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <h1>Yuvids</h1>
+        
+        <form id="downloadForm">
+            <div class="input-group">
+                <input type="text" id="videoLinkInput" name="url" placeholder="Collez le lien de la vidéo TikTok ou YouTube" required>
+                <select id="watermarkOption" name="watermark">
+                    <option value="without">Sans filigrane</option>
+                    <option value="with">Avec filigrane</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn">Télécharger</button>
+        </form>
+        
+        <div id="videoResults">
+            <!-- Résultats seront affichés ici -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('downloadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const videoResults = document.getElementById('videoResults');
+            const notification = document.getElementById('copyNotification');
+            
+            videoResults.innerHTML = '<p>Recherche de la vidéo en cours...</p>';
+            
+            fetch('/download', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    videoResults.innerHTML = `
+                        <div class="video-preview">
+                            <h3>${data.filename}</h3>
+                            <div class="download-options">
+                                <a href="/get_video/${encodeURIComponent(data.filename)}" class="download-btn">
+                                    Télécharger
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    notification.textContent = 'Vidéo prête à être téléchargée !';
+                    notification.classList.add('show');
+                    setTimeout(() => notification.classList.remove('show'), 3000);
+                } else {
+                    videoResults.innerHTML = `<p>${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                videoResults.innerHTML = `<p>Erreur : ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
